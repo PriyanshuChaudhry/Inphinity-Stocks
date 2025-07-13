@@ -14,7 +14,7 @@
 
 ## 🌐 Live Demo
 
-🔗 [Try Infinity Stocks Live](https://inphinity.in)  
+🔗 [Try Inphinity Stocks Live](https://inphinity-stocks-frontend.onrender.com/)  
 
 ---
 

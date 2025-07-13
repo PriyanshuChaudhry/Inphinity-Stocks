@@ -25,7 +25,7 @@ function Hero() {
               href={
                 window.location.hostname === "localhost"
                   ? "http://localhost:3001"
-                  : process.env.REACT_APP_DASHBOARD_URL
+                  : "https://inphinity-stocks-dashboard.onrender.com"
               }
               target="_blank"
               rel="noopener noreferrer"

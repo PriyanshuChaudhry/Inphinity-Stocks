@@ -7,11 +7,27 @@ const Holdings = () => {
 
   const [allHoldings, setAllHoldings] = useState([]);
 
-  useEffect(() => {
+  const fetchHoldings = () => {
     axios.get("http://localhost:3002/allHoldings").then((res) => {
       
       setAllHoldings(res.data);
     });
+  };
+
+  useEffect(() => {
+    fetchHoldings();
+
+    const es = new EventSource("http://localhost:3002/events");
+    es.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg && msg.type === "data-updated") {
+          fetchHoldings();
+        }
+      } catch (_) {}
+    };
+
+    return () => es.close();
   }, []);
 
   

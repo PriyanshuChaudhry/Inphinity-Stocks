@@ -19,6 +19,30 @@ app.use(cors());
 app.use(bodyParser.json());
 
 
+const sseClients = [];
+
+function broadcastEvent(dataObject) {
+  const payload = `data: ${JSON.stringify(dataObject)}\n\n`;
+  sseClients.forEach((res) => res.write(payload));
+}
+
+app.get("/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders && res.flushHeaders();
+
+  res.write("event: ping\n");
+  res.write("data: {}\n\n");
+
+  sseClients.push(res);
+
+  req.on("close", () => {
+    const idx = sseClients.indexOf(res);
+    if (idx !== -1) sseClients.splice(idx, 1);
+  });
+});
+
 app.get("/allHoldings", async (req, res) => {
   let allHoldings = await HoldingsModel.find({});
   res.json(allHoldings);
@@ -29,17 +53,76 @@ app.get("/allPositions", async (req, res) => {
   res.json(allPositions);
 });
 
+app.get("/allOrders", async (req, res) => {
+  const allOrders = await OrdersModel.find({}).sort({ _id: -1 });
+  res.json(allOrders);
+});
+
 app.post("/newOrder", async (req, res) => {
-  let newOrder = new OrdersModel({
-    name: req.body.name,
-    qty: req.body.qty,
-    price: req.body.price,
-    mode: req.body.mode,
-  });
+  const name = req.body.name;
+  const qty = Number(req.body.qty);
+  const price = Number(req.body.price);
+  const mode = req.body.mode === "SELL" ? "SELL" : "BUY";
 
-  newOrder.save();
+  const newOrder = new OrdersModel({ name, qty, price, mode });
+  await newOrder.save();
 
-  res.send("Order saved!");
+  const existing = await HoldingsModel.findOne({ name });
+
+  if (mode === "BUY") {
+    if (existing) {
+      const newQty = Number(existing.qty) + qty;
+      const newAvg = newQty > 0 ? ((Number(existing.avg) * Number(existing.qty)) + (price * qty)) / newQty : 0;
+      existing.qty = newQty;
+      existing.avg = newAvg;
+      existing.price = price; 
+      await existing.save();
+    } else {
+      await new HoldingsModel({ name, qty, avg: price, price, net: "0.00%", day: "0.00%" }).save();
+    }
+  } else if (mode === "SELL") {
+    if (existing) {
+      const newQty = Number(existing.qty) - qty;
+      if (newQty <= 0) {
+        await HoldingsModel.deleteOne({ _id: existing._id });
+      } else {
+        existing.qty = newQty;
+        existing.price = price;
+        await existing.save();
+      }
+    }
+  }
+
+  const posFilter = { product: "CNC", name };
+  const currentPos = await PositionsModel.findOne(posFilter);
+  if (mode === "BUY") {
+    if (currentPos) {
+      const newQty = Number(currentPos.qty) + qty;
+      const newAvg = newQty > 0 ? ((Number(currentPos.avg) * Number(currentPos.qty)) + (price * qty)) / newQty : 0;
+      currentPos.qty = newQty;
+      currentPos.avg = newAvg;
+      currentPos.price = price;
+      currentPos.isLoss = false;
+      await currentPos.save();
+    } else {
+      await new PositionsModel({ product: "CNC", name, qty, avg: price, price, net: "0.00%", day: "0.00%", isLoss: false }).save();
+    }
+  } else {
+    if (currentPos) {
+      const newQty = Number(currentPos.qty) - qty;
+      if (newQty <= 0) {
+        await PositionsModel.deleteOne({ _id: currentPos._id });
+      } else {
+        currentPos.qty = newQty;
+        currentPos.price = price;
+        await currentPos.save();
+      }
+    }
+  }
+
+  broadcastEvent({ type: "data-updated" });
+
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {

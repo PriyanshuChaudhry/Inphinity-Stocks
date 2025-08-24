@@ -5,12 +5,28 @@ const Positions = () => {
 
   const [allPositions, setAllPositions] = useState([]);
   
-    useEffect(() => {
-      axios.get("http://localhost:3002/allPositions").then((res) => {
-        
-        setAllPositions(res.data);
-      });
-    }, []);
+  const fetchPositions = () => {
+    axios.get("http://localhost:3002/allPositions").then((res) => {
+      
+      setAllPositions(res.data);
+    });
+  };
+
+  useEffect(() => {
+    fetchPositions();
+
+    const es = new EventSource("http://localhost:3002/events");
+    es.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg && msg.type === "data-updated") {
+          fetchPositions();
+        }
+      } catch (_) {}
+    };
+
+    return () => es.close();
+  }, []);
 
   return (
     <>

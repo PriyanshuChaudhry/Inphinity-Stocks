@@ -26,6 +26,11 @@ function broadcastEvent(dataObject) {
   sseClients.forEach((res) => res.write(payload));
 }
 
+// Health check endpoint for Render
+app.get("/", (req, res) => {
+  res.json({ status: "ok", message: "Inphinity Stocks Backend API" });
+});
+
 app.get("/events", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -210,8 +215,16 @@ app.post("/newOrder", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log("App started!");
-  mongoose.connect(uri);
-  console.log("DB started!");
-});
+// Connect to MongoDB first
+mongoose.connect(uri)
+  .then(() => {
+    console.log("✓ DB connected successfully!");
+    // Start server on 0.0.0.0 (Render requirement)
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`✓ Server listening on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("✗ MongoDB connection error:", err.message);
+    process.exit(1);
+  });

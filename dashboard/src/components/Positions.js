@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios, { all } from "axios";
+import API_BASE_URL from "../config/api";
 
 const Positions = () => {
 
   const [allPositions, setAllPositions] = useState([]);
   
   const fetchPositions = () => {
-    axios.get("http://localhost:3002/allPositions").then((res) => {
+    axios.get(`${API_BASE_URL}/allPositions`).then((res) => {
       
       setAllPositions(res.data);
     });
@@ -15,7 +16,7 @@ const Positions = () => {
   useEffect(() => {
     fetchPositions();
 
-    const es = new EventSource("http://localhost:3002/events");
+    const es = new EventSource(`${API_BASE_URL}/events`);
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data);

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 
 const Summary = () => {
   const [holdings, setHoldings] = useState([]);
@@ -7,8 +8,8 @@ const Summary = () => {
 
   const fetchAll = () => {
     Promise.all([
-      axios.get("http://localhost:3002/allHoldings"),
-      axios.get("http://localhost:3002/allPositions"),
+      axios.get(`${API_BASE_URL}/allHoldings`),
+      axios.get(`${API_BASE_URL}/allPositions`),
     ]).then(([h, p]) => {
       setHoldings(h.data || []);
       setPositions(p.data || []);
@@ -18,7 +19,7 @@ const Summary = () => {
   useEffect(() => {
     fetchAll();
 
-    const es = new EventSource("http://localhost:3002/events");
+    const es = new EventSource(`${API_BASE_URL}/events`);
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data);

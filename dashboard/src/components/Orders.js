@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = () => {
-    axios.get("http://localhost:3002/allOrders").then((res) => setOrders(res.data));
+    axios.get(`${API_BASE_URL}/allOrders`).then((res) => setOrders(res.data));
   };
 
   useEffect(() => {
     fetchOrders();
 
-    const es = new EventSource("http://localhost:3002/events");
+    const es = new EventSource(`${API_BASE_URL}/events`);
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data);

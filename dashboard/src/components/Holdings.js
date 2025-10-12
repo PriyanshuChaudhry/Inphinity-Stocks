@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios, { all } from "axios";
 import { VerticalGraph } from "./VerticalGraph";
+import API_BASE_URL from "../config/api";
 
 
 const Holdings = () => {
@@ -8,7 +9,7 @@ const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
 
   const fetchHoldings = () => {
-    axios.get("http://localhost:3002/allHoldings").then((res) => {
+    axios.get(`${API_BASE_URL}/allHoldings`).then((res) => {
       
       setAllHoldings(res.data);
     });
@@ -17,7 +18,7 @@ const Holdings = () => {
   useEffect(() => {
     fetchHoldings();
 
-    const es = new EventSource("http://localhost:3002/events");
+    const es = new EventSource(`${API_BASE_URL}/events`);
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data);
@@ -43,6 +44,14 @@ const Holdings = () => {
       },
     ],
   };
+
+  const { totalInvestment, currentValue, profitLoss, profitLossPct } = useMemo(() => {
+    const totalInvestment = allHoldings.reduce((acc, stock) => acc + Number(stock.avg) * Number(stock.qty), 0);
+    const currentValue = allHoldings.reduce((acc, stock) => acc + Number(stock.price) * Number(stock.qty), 0);
+    const profitLoss = currentValue - totalInvestment;
+    const profitLossPct = totalInvestment > 0 ? (profitLoss / totalInvestment) * 100 : 0;
+    return { totalInvestment, currentValue, profitLoss, profitLossPct };
+  }, [allHoldings]);
 
 
   return (
@@ -89,18 +98,20 @@ const Holdings = () => {
       <div className="row">
         <div className="col">
           <h5>
-            29,875.<span>55</span>{" "}
+            {totalInvestment.toFixed(2)}
           </h5>
           <p>Total investment</p>
         </div>
         <div className="col">
           <h5>
-            31,428.<span>95</span>{" "}
+            {currentValue.toFixed(2)}
           </h5>
           <p>Current value</p>
         </div>
         <div className="col">
-          <h5>1,553.40 (+5.20%)</h5>
+          <h5 className={profitLoss >= 0 ? "profit" : "loss"}>
+            {profitLoss.toFixed(2)} ({profitLoss >= 0 ? "+" : ""}{profitLossPct.toFixed(2)}%)
+          </h5>
           <p>P&L</p>
         </div>
       </div>

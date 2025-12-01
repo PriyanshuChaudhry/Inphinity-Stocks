@@ -78,8 +78,7 @@ inphinity-stocks/ <br>
 ├── frontend <br>
 ├── dashboard <br>
 ├── backen <br>
-├── ML_Model # Machine Learning pipeline (Google Colab) <br>
-│ └── stock_recommendation_model.ipynb <br>
+├── machine_learning <br>
 └── README.md
 
 

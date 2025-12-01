@@ -1,0 +1,83 @@
+{
+  "TCS": {
+    "recommendation": "HOLD",
+    "confidence": 99.8,
+    "probabilities": {
+      "BUY": 0.0,
+      "HOLD": 99.8,
+      "SELL": 0.2
+    }
+  },
+  "INFY": {
+    "recommendation": "HOLD",
+    "confidence": 85.4,
+    "probabilities": {
+      "BUY": 10.4,
+      "HOLD": 85.4,
+      "SELL": 4.2
+    }
+  },
+  "WIPRO": {
+    "recommendation": "HOLD",
+    "confidence": 58.8,
+    "probabilities": {
+      "BUY": 34.7,
+      "HOLD": 58.8,
+      "SELL": 6.4
+    }
+  },
+  "ONGC": {
+    "recommendation": "HOLD",
+    "confidence": 70.9,
+    "probabilities": {
+      "BUY": 21.8,
+      "HOLD": 70.9,
+      "SELL": 7.3
+    }
+  },
+  "M&M": {
+    "recommendation": "SELL",
+    "confidence": 68.2,
+    "probabilities": {
+      "BUY": 8.7,
+      "HOLD": 23.2,
+      "SELL": 68.2
+    }
+  },
+  "RELIANCE": {
+    "recommendation": "SELL",
+    "confidence": 81.3,
+    "probabilities": {
+      "BUY": 17.0,
+      "HOLD": 1.8,
+      "SELL": 81.3
+    }
+  },
+  "KPITTECH": {
+    "recommendation": "SELL",
+    "confidence": 54.3,
+    "probabilities": {
+      "BUY": 29.4,
+      "HOLD": 16.3,
+      "SELL": 54.3
+    }
+  },
+  "HUL": {
+    "recommendation": "BUY",
+    "confidence": 69.3,
+    "probabilities": {
+      "BUY": 69.3,
+      "HOLD": 21.5,
+      "SELL": 9.2
+    }
+  },
+  "QUICKHEAL": {
+    "recommendation": "SELL",
+    "confidence": 62.2,
+    "probabilities": {
+      "BUY": 26.0,
+      "HOLD": 11.7,
+      "SELL": 62.2
+    }
+  }
+}

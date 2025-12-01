@@ -5,6 +5,10 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
+const fs = require("fs");
+const path = require("path");
+
+
 const { HoldingsModel } = require("./model/HoldingsModel");
 const { PositionsModel } = require("./model/PositionsModel");
 const { OrdersModel } = require("./model/OrdersModel");
@@ -215,16 +219,100 @@ app.post("/newOrder", async (req, res) => {
   }
 });
 
-// Connect to MongoDB first
+
+// ML RECOMMENDATIONS ENDPOINT
+// Returns ML-powered stock recommendations for all stocks
+ 
+app.get("/api/recommendations", (req, res) => {
+  try {
+    // Read predictions.json file
+    const predictionsPath = path.join(__dirname, "ml", "predictions.json");
+    
+    // Check if file exists
+    if (!fs.existsSync(predictionsPath)) {
+      return res.status(404).json({
+        success: false,
+        message: "Predictions file not found. Please generate ML predictions first."
+      });
+    }
+
+    const predictionsData = fs.readFileSync(predictionsPath, "utf8");
+    const predictions = JSON.parse(predictionsData);
+
+    res.status(200).json({
+      success: true,
+      message: "ML recommendations fetched successfully",
+      timestamp: new Date().toISOString(),
+      data: predictions
+    });
+
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch recommendations",
+      error: error.message
+    });
+  }
+});
+
+
+
+ // Returns ML recommendation for a specific stock
+
+app.get("/api/recommendations/:stock", (req, res) => {
+  try {
+    const stockSymbol = req.params.stock.toUpperCase();
+
+    // Read predictions.json file
+    const predictionsPath = path.join(__dirname, "ml", "predictions.json");
+    
+    if (!fs.existsSync(predictionsPath)) {
+      return res.status(404).json({
+        success: false,
+        message: "Predictions file not found"
+      });
+    }
+
+    const predictionsData = fs.readFileSync(predictionsPath, "utf8");
+    const predictions = JSON.parse(predictionsData);
+
+    // Check if stock exists in predictions
+    if (!predictions[stockSymbol]) {
+      return res.status(404).json({
+        success: false,
+        message: `No recommendation found for ${stockSymbol}`,
+        availableStocks: Object.keys(predictions)
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      stock: stockSymbol,
+      timestamp: new Date().toISOString(),
+      data: predictions[stockSymbol]
+    });
+
+  } catch (error) {
+    console.error(`Error fetching recommendation for ${req.params.stock}:`, error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch recommendation",
+      error: error.message
+    });
+  }
+});
+
+
+//MONGO DB CONNECTION
 mongoose.connect(uri)
   .then(() => {
-    console.log("✓ DB connected successfully!");
-    // Start server on 0.0.0.0 (Render requirement)
+    console.log("DB connected successfully!");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`✓ Server listening on port ${PORT}`);
+      console.log(`Server listening on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("✗ MongoDB connection error:", err.message);
+    console.error("MongoDB connection error:", err.message);
     process.exit(1);
   });

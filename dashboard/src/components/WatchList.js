@@ -1,20 +1,16 @@
 import React, { useState, useContext } from "react";
-
 import axios from "axios";
-
 import GeneralContext from "./GeneralContext";
-
 import { Tooltip, Grow } from "@mui/material";
-
 import {
   BarChartOutlined,
   KeyboardArrowDown,
   KeyboardArrowUp,
   MoreHoriz,
 } from "@mui/icons-material";
-
 import { watchlist } from "../data/data";
 import { DoughnutChart } from "./DoughnoutChart";
+import AnalyticsModal from "./AnalyticsModal";
 
 const labels = watchlist.map((subArray) => subArray["name"]);
 
@@ -45,7 +41,6 @@ const WatchList = () => {
       },
     ],
   };
-
 
   return (
     <div className="watchlist-container">
@@ -105,6 +100,10 @@ const WatchListItem = ({ stock }) => {
 
 const WatchListActions = ({ uid }) => {
   const generalContext = useContext(GeneralContext);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [recommendation, setRecommendation] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleBuyClick = () => {
     generalContext.openBuyWindow(uid, "BUY");
@@ -114,43 +113,91 @@ const WatchListActions = ({ uid }) => {
     generalContext.openBuyWindow(uid, "SELL");
   };
 
+  const handleAnalyticsClick = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch recommendation from backend
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3002';
+const response = await axios.get(
+  `${backendUrl}/api/recommendations/${uid}`
+);
+
+
+      if (response.data.success) {
+        setRecommendation(response.data.data);
+        setShowAnalytics(true);
+      } else {
+        setError("Failed to fetch recommendation");
+      }
+    } catch (err) {
+      console.error("Error fetching analytics:", err);
+      setError(err.response?.data?.message || "Failed to fetch recommendation");
+      alert(`Analytics Error: ${err.response?.data?.message || "Failed to fetch recommendation"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseAnalytics = () => {
+    setShowAnalytics(false);
+    setRecommendation(null);
+  };
+
   return (
-    <span className="actions">
-      <span>
-        <Tooltip
-          title="Buy (B)"
-          placement="top"
-          arrow
-          slots={{ transition: Grow }}
-          onClick={handleBuyClick}
-        >
-          <button className="buy">Buy</button>
-        </Tooltip>
-        <Tooltip
-          title="Sell (S)"
-          placement="top"
-          arrow
-          slots={{ transition: Grow }}
-          onClick={handleSellClick}
-        >
-          <button className="sell">Sell</button>
-        </Tooltip>
-        <Tooltip
-          title="Analytics (A)"
-          placement="top"
-          arrow
-          slots={{ transition: Grow }}
-        >
-          <button className="action">
-            <BarChartOutlined className="icon" />
-          </button>
-        </Tooltip>
-        <Tooltip title="More" placement="top" arrow slots={{ transition: Grow }}>
-          <button className="action">
-            <MoreHoriz className="icon" />
-          </button>
-        </Tooltip>
+    <>
+      <span className="actions">
+        <span>
+          <Tooltip
+            title="Buy (B)"
+            placement="top"
+            arrow
+            slots={{ transition: Grow }}
+            onClick={handleBuyClick}
+          >
+            <button className="buy">Buy</button>
+          </Tooltip>
+          <Tooltip
+            title="Sell (S)"
+            placement="top"
+            arrow
+            slots={{ transition: Grow }}
+            onClick={handleSellClick}
+          >
+            <button className="sell">Sell</button>
+          </Tooltip>
+          <Tooltip
+            title={loading ? "Loading..." : "Analytics (A)"}
+            placement="top"
+            arrow
+            slots={{ transition: Grow }}
+          >
+            <button
+              className="action"
+              onClick={handleAnalyticsClick}
+              disabled={loading}
+              style={{ opacity: loading ? 0.6 : 1 }}
+            >
+              <BarChartOutlined className="icon" />
+            </button>
+          </Tooltip>
+          <Tooltip title="More" placement="top" arrow slots={{ transition: Grow }}>
+            <button className="action">
+              <MoreHoriz className="icon" />
+            </button>
+          </Tooltip>
+        </span>
       </span>
-    </span>
+
+      {/* Analytics Modal */}
+      {showAnalytics && recommendation && (
+        <AnalyticsModal
+          stock={uid}
+          recommendation={recommendation}
+          onClose={handleCloseAnalytics}
+        />
+      )}
+    </>
   );
 };

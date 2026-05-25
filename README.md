@@ -117,6 +117,12 @@ npm install <br>
 npm start
 ```
 
+## 👥 Team Members
+
+- Priyanshu Chaudhary  
+- Piyush Agarwal  
+- Navaneet Kumar
+ 
 
 ## 💬Author
 

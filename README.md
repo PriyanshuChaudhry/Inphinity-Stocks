@@ -124,4 +124,4 @@ npm start
 Author: Priyanshu Chaudhary <br>
 📧 Email: [priyanshukaushal14@gmail.com](mailto:priyanshukaushal14@gmail.com) <br>
 🌐 LinkedIn: [https://www.linkedin.com/in/priyanshu-chaudhary-1b7593255/](https://www.linkedin.com/in/priyanshu-chaudhary-1b7593255/) <br>
-Happy Investing! ✨
+Happy Investing and Trading! ✨
